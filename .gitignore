@@ -8,3 +8,4 @@
 # Mössbauer files
 *.mos
 *.job
+data-control/
