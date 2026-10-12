@@ -1,3 +1,6 @@
+# VsCode files
+.vscode/
+
 # Python files
 *.pyc
 *.pyo
