@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mossview"  # Nome do pacote no PyPI
-version = "1.0.0"  # Versão inicial do software
-description = "Um sistema para leitura, processamento e visualização de dados Mössbauer"
+name = "mossview"  # Nome do pacote no PyPI[cite: 2]
+version = "1.0.0"  # Versão inicial do software[cite: 2]
+description = "Um sistema para leitura, processamento e visualização de dados Mössbauer"[cite: 2]
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
@@ -20,7 +20,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
 ]
 dependencies = [
-    # Coloque aqui as dependências do seu projeto, ex: numpy, matplotlib, customtkinter, etc.
     "numpy>=1.20.0",
     "matplotlib>=3.3.0",
 ]
@@ -28,8 +27,10 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/seu-usuario/mossview"
 
-[tool.setuptools]
-packages = []
+# Configuração correta para o padrão src/
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mossview*"]
 
 # Configuração de automação de release e versionamento
 [tool.semantic_release]
