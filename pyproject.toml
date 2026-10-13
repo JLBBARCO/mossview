@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mossview"  # Nome do pacote no PyPI[cite: 2]
-version = "1.0.0"  # Versão inicial do software[cite: 2]
-description = "Um sistema para leitura, processamento e visualização de dados Mössbauer"[cite: 2]
+name = "mossview"  # Nome do pacote no PyPI
+version = "1.0.0"  # Versão inicial do software
+description = "Um sistema para leitura, processamento e visualização de dados Mössbauer"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
