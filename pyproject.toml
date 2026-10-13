@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mossview"  # Nome do pacote no PyPI
-version = "0.1.0"  # Versão inicial do software
+version = "1.0.0"  # Versão inicial do software
 description = "Um sistema para leitura, processamento e visualização de dados Mössbauer"
 readme = "README.md"
 requires-python = ">=3.8"
