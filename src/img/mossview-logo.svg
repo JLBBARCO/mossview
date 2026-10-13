@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Gradiente de Fundo do App -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    
+    <!-- Gradiente do Espectro -->
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+
+    <!-- Efeito Glow / Neon -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Fundo Arredondado (Estilo App Icon) -->
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#bgGrad)" stroke="#334155" stroke-width="4"/>
+
+  <!-- Grade Discreta de Fundo -->
+  <path d="M 80 180 H 432 M 80 270 H 432 M 80 360 H 432" stroke="#334155" stroke-width="2" stroke-dasharray="6,6" opacity="0.4"/>
+  <path d="M 160 100 V 400 M 256 100 V 400 M 352 100 V 400" stroke="#334155" stroke-width="2" stroke-dasharray="6,6" opacity="0.4"/>
+
+  <!-- Linha de Absorção Mössbauer (Dubleto Assimétrico) -->
+  <path d="M 80 180 
+           L 160 180 
+           C 180 180, 195 340, 205 340 
+           C 215 340, 225 240, 256 240 
+           C 277 240, 287 370, 297 370 
+           C 307 370, 322 180, 342 180 
+           L 432 180" 
+        fill="none" 
+        stroke="url(#lineGrad)" 
+        stroke-width="10" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        filter="url(#glow)"/>
+
+  <!-- Pontos Experimentais de Destaque -->
+  <circle cx="120" cy="180" r="5" fill="#38BDF8"/>
+  <circle cx="205" cy="340" r="6" fill="#818CF8"/>
+  <circle cx="256" cy="240" r="5" fill="#818CF8"/>
+  <circle cx="297" cy="370" r="6" fill="#818CF8"/>
+  <circle cx="392" cy="180" r="5" fill="#38BDF8"/>
+
+  <!-- Eixo de Velocidade (Seta Inferior) -->
+  <path d="M 120 415 H 392" stroke="#64748B" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 120 415 L 132 409 M 120 415 L 132 421" stroke="#64748B" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 392 415 L 380 409 M 392 415 L 380 421" stroke="#64748B" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Rótulo de Velocidade -->
+  <text x="256" y="445" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="20" font-weight="bold" text-anchor="middle">-v   0   +v</text>
+</svg>

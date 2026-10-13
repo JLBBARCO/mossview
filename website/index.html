@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f0">
+  <link rel="icon" href="src/assets/icon/mossview-logo.ico" type="image/x-icon">
+  <meta name="description"
+    content="MossView: ferramenta local em Python para ler arquivos .MOS e visualizar espectros Mössbauer com transmissão relativa e barras de erro de Poisson.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="MossView — clareza para seus espectros Mössbauer">
+  <meta property="og:description"
+    content="Leia arquivos .MOS e .JOB, visualize a transmissão relativa e salve o gráfico no seu computador.">
+  <meta property="og:image" content="src/assets/images/mossview-espectro-amostra.png">
+  <title>MossView — clareza para seus espectros Mössbauer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="src/css/style.css">
+  <link rel="stylesheet" href="src/css/pc.css">
+  <link rel="stylesheet" href="src/css/tablet.css">
+  <link rel="stylesheet" href="src/css/tv.css">
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#inicio" aria-label="MossView — início">
+        <span class="brand-mark" aria-hidden="true"><img src="src/assets/icon/mossview-logo.ico" alt="" width="36"
+            height="36"></span>
+        <span class="brand-name">moss<span>view</span></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-controls="main-navigation" aria-expanded="false"
+        aria-label="Abrir navegação">
+        <span class="nav-toggle-label">Menu</span>
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+          <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+      </button>
+      <nav class="nav" id="main-navigation" aria-label="Navegação principal">
+        <a href="#recursos">Recursos</a>
+        <a href="#processo">Como funciona</a>
+        <a href="#instalacao">Instalação</a>
+      </nav>
+      <a class="header-cta" href="https://github.com/JLBBARCO/mossview" target="_blank" rel="noopener noreferrer"
+        aria-label="Abrir o repositório MossView no GitHub">
+        <span class="header-cta-label">Ver repositório</span>
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 12 12 4M5 4h7v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Leitura de espectros Mössbauer</span>
+          <h1>Do arquivo bruto a uma leitura <em>mais clara.</em></h1>
+          <p class="hero-lead">MossView é uma ferramenta em Python que transforma contagens de arquivos
+            <code>.MOS</code> em gráficos de transmissão relativa — e aproveita metadados de arquivos <code>.JOB</code>
+            associados.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#instalacao">Comece no seu computador <svg viewBox="0 0 16 16"
+                fill="none" aria-hidden="true">
+                <path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg></a>
+            <a class="button button-secondary" href="https://github.com/JLBBARCO/mossview" target="_blank"
+              rel="noopener noreferrer">Explorar o código</a>
+          </div>
+          <div class="hero-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <rect x="3.5" y="8" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.4" />
+              <path d="M6.5 8V5.8a3.5 3.5 0 0 1 7 0V8" stroke="currentColor" stroke-width="1.4"
+                stroke-linecap="round" />
+            </svg><span>Aplicação local. Seus dados são lidos pelo programa no seu computador; não é necessário enviar
+              espectros a um serviço web.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="signal-band" aria-label="Resumo das principais características">
+      <div class="wrap signal-grid">
+        <div class="signal"><span class="signal-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+              <path d="M4 3.5h8l4 4v9H4z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round" />
+              <path d="M12 3.8v4h3.7M7 11h6M7 14h6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" />
+            </svg></span>
+          <div><strong>Arquivos .MOS e .JOB</strong><span>Dados experimentais e metadados</span></div>
+        </div>
+        <div class="signal"><span class="signal-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+              <path d="M3 15.5h14M4 13l3-4 3 2 5-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <circle cx="15" cy="4" r="1.25" fill="currentColor" />
+            </svg></span>
+          <div><strong>Transmissão relativa</strong><span>Contagens normalizadas pelo máximo</span></div>
+        </div>
+        <div class="signal"><span class="signal-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+              <path d="M4 4v12m6-10v8m6-11v14M2.5 7h3m3-1h3m-3 8h3m3-6h3m-3 6h3" stroke="currentColor"
+                stroke-width="1.35" stroke-linecap="round" />
+            </svg></span>
+          <div><strong>Barras de erro de Poisson</strong><span>√contagem na normalização exibida</span></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="section" id="recursos">
+      <div class="wrap">
+        <div class="section-heading">
+          <span class="eyebrow">O que a ferramenta faz</span>
+          <h2>Um fluxo direto, do arquivo à figura.</h2>
+          <p>O MossView reúne leitura de dados, metadados disponíveis e um gráfico pronto para inspeção. Foi feito para
+            rodar como script Python, sem depender de uma interface online.</p>
+        </div>
+        <div class="capability-grid">
+          <article class="capability-card"><span class="card-number">01 — LEITURA</span><span class="card-icon"
+              aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+                <path d="M4 3.5h8l4 4v9H4z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round" />
+                <path d="M12 3.8v4h3.7M7 11h6M7 14h4" stroke="currentColor" stroke-width="1.35"
+                  stroke-linecap="round" />
+              </svg></span>
+            <h3>Entradas conhecidas</h3>
+            <p>Leia contagens de um arquivo <code>.MOS</code> em XML ou texto numérico. Ao encontrar um
+              <code>.JOB</code> relacionado, o programa pode aproveitar o título e o valor de <code>VMAX</code>.
+            </p>
+          </article>
+          <article class="capability-card"><span class="card-number">02 — VISUALIZAÇÃO</span><span class="card-icon"
+              aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+                <path d="M3.5 15.5h13M4 13.5l3.2-4 3.2 2 5.7-7" stroke="currentColor" stroke-width="1.4"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg></span>
+            <h3>Escala e transmissão</h3>
+            <p>Gere uma escala linear de velocidade simétrica e normalize as contagens pelo máximo para exibir a
+              transmissão relativa em porcentagem.</p>
+          </article>
+          <article class="capability-card"><span class="card-number">03 — ARQUIVO DE SAÍDA</span><span class="card-icon"
+              aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+                <path d="M10 3.5v9m0 0 3.5-3.5M10 12.5 6.5 9M4 14v2h12v-2" stroke="currentColor" stroke-width="1.4"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg></span>
+            <h3>PNG ao lado dos dados</h3>
+            <p>Salve o gráfico na mesma pasta do arquivo <code>.MOS</code>. Uma janela Matplotlib também abre para
+              visualização interativa.</p>
+          </article>
+          <article class="capability-card"><span class="card-number">04 — INCERTEZA</span><span class="card-icon"
+              aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+                <path d="M5 4v12m5-9v6m5-11v16M3 6h4m1 7h4m1-8h4" stroke="currentColor" stroke-width="1.4"
+                  stroke-linecap="round" />
+              </svg></span>
+            <h3>Erros de Poisson</h3>
+            <p>Mostre barras calculadas como √contagem, também normalizadas pelo máximo da amostra.</p>
+          </article>
+          <article class="capability-card"><span class="card-number">05 — METADADOS</span><span class="card-icon"
+              aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="6.5" stroke="currentColor" stroke-width="1.35" />
+                <path d="M10 9v4M10 6.5h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg></span>
+            <h3>Contexto no gráfico</h3>
+            <p>Quando disponível, exiba o título e inclua arquivo, JOB associado, número de canais, Vmax e contagem
+              máxima no gráfico.</p>
+          </article>
+          <article class="capability-card"><span class="card-number">06 — INSPEÇÃO</span><span class="card-icon"
+              aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">
+                <path d="M10 3 16 5v4c0 3.6-2.4 6-6 8-3.6-2-6-4.4-6-8V5z" stroke="currentColor" stroke-width="1.35"
+                  stroke-linejoin="round" />
+                <path d="m7.5 9.5 1.7 1.7 3.5-3.7" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg></span>
+            <h3>Checagem pontual de .JOB</h3>
+            <p>Compare alguns valores dentro do bloco <code>&amp;PARAM</code> com valores de tabelas e, se houver
+              correções, grave um arquivo <code>-updated.job</code> separado.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="process-section" id="processo">
+      <div class="wrap">
+        <div class="section-heading">
+          <span class="eyebrow">Como funciona</span>
+          <h2>Quatro passos, sem mistério.</h2>
+          <p>O próprio arquivo que você passa determina a busca pelos dados relacionados e onde o gráfico será salvo.
+          </p>
+        </div>
+        <div class="process-grid">
+          <article class="process-step">
+            <div class="step-label"><b>01</b> Entrada</div>
+            <h3>Escolha o arquivo</h3>
+            <p>Passe o caminho de um arquivo <code>.MOS</code> ou <code>.JOB</code> como argumento.</p>
+          </article>
+          <article class="process-step">
+            <div class="step-label"><b>02</b> Associação</div>
+            <h3>Localize o par</h3>
+            <p>O programa tenta encontrar o <code>.MOS</code> e o <code>.JOB</code> correspondentes na mesma pasta.</p>
+          </article>
+          <article class="process-step">
+            <div class="step-label"><b>03</b> Cálculo</div>
+            <h3>Normalize os canais</h3>
+            <p>Use contagens, escala linear simétrica e a maior contagem como referência.</p>
+          </article>
+          <article class="process-step">
+            <div class="step-label"><b>04</b> Resultado</div>
+            <h3>Salve e inspecione</h3>
+            <p>Grave um PNG junto aos dados e abra a janela interativa do gráfico.</p>
+          </article>
+        </div>
+        <div class="math-strip"><span>Transmissão relativa · por
+            canal</span><code>contagem / contagem máxima × 100</code></div>
+        <div class="math-strip"><span>Barra de erro relativa · por
+            canal</span><code>√contagem / contagem máxima × 100</code></div>
+      </div>
+    </section>
+
+    <section class="transparency-section" id="escopo">
+      <div class="wrap transparency-grid">
+        <div class="section-heading">
+          <span class="eyebrow">Escopo e transparência</span>
+          <h2>Ferramenta clara sobre o que faz.</h2>
+          <p>O MossView é um visualizador local em desenvolvimento. Conhecer suas limitações ajuda a interpretar o
+            resultado no contexto correto.</p>
+        </div>
+        <div>
+          <div class="limit-list">
+            <div class="limit-item"><span class="limit-mark" aria-hidden="true">↗</span>
+              <div><strong>Interface de linha de comando</strong>
+                <p>Não há, no projeto atual, um visualizador no navegador nem uma interface gráfica própria. A
+                  visualização é aberta por uma janela interativa do Matplotlib.</p>
+              </div>
+            </div>
+            <div class="limit-item"><span class="limit-mark" aria-hidden="true">↔</span>
+              <div><strong>Escala linear simétrica</strong>
+                <p>A velocidade é calculada de −Vmax a +Vmax. O valor padrão é 10 mm/s quando não há metadado aplicável.
+                  <code>ND</code> e <code>TRIANG</code> são lidos, mas ainda não alteram o processamento.
+                </p>
+              </div>
+            </div>
+            <div class="limit-item"><span class="limit-mark" aria-hidden="true">.MOS</span>
+              <div><strong>Formatos de dados</strong>
+                <p>O parser tenta ler XML com elemento <code>&lt;data&gt;</code> ou extrair números de texto simples;
+                  formatos mais complexos podem não ser reconhecidos.</p>
+              </div>
+            </div>
+            <div class="limit-item"><span class="limit-mark" aria-hidden="true">.JOB</span>
+              <div><strong>Checagem parcial, não validação normativa</strong>
+                <p>A inspeção cobre casos numéricos selecionados dentro de <code>&amp;PARAM</code>. Não valida todo o
+                  formato NORMOS nem garante correção física.</p>
+              </div>
+            </div>
+          </div>
+          <aside class="caution"><strong>Revise arquivos corrigidos antes de reutilizar</strong>
+            <p>Quando identifica diferenças, o programa cria uma cópia com sufixo <code>-updated.job</code>. A correção
+              é heurística: confira os valores antes de enviar o arquivo a outro software.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="start-section" id="instalacao">
+      <div class="wrap start-grid">
+        <div class="start-copy">
+          <span class="eyebrow">Primeiros passos</span>
+          <h2>Rode localmente, no seu ritmo.</h2>
+          <p>Clone o repositório, instale as dependências e informe um arquivo de entrada. Use caminhos para os seus
+            próprios dados experimentais.</p>
+          <div class="requirements"><span>Python 3.8+</span><span>NumPy</span><span>Matplotlib</span><span>Windows ·
+              macOS · Linux</span></div>
+          <a class="button button-primary" href="https://github.com/JLBBARCO/mossview" target="_blank"
+            rel="noopener noreferrer">Abrir MossView no GitHub <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 12 12 4M5 4h7v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg></a>
+        </div>
+        <div>
+          <div class="terminal" aria-label="Comandos para instalar e executar o MossView">
+            <div class="terminal-top"><span class="demo-lights"
+                aria-hidden="true"><i></i><i></i><i></i></span><span>Terminal · configuração básica</span></div>
+            <code><span class="comment"># Clone o repositório</span>
+<span class="prompt">$</span> git clone https://github.com/JLBBARCO/mossview.git
+<span class="prompt">$</span> cd mossview
+
+<span class="comment"># Crie e ative um ambiente virtual</span>
+<span class="prompt">$</span> python -m venv .venv
+<span class="prompt">$</span> source .venv/bin/activate
+
+<span class="comment"># Instale dependências e processe um arquivo</span>
+<span class="prompt">$</span> python -m pip install -r requirements.txt
+<span class="prompt">$</span> python core-app/mossview.py caminho/para/espectro.mos</code>
+          </div>
+          <p class="install-note">No Windows PowerShell, ative com <code>.venv\Scripts\Activate.ps1</code>. O PNG é
+            salvo ao lado do arquivo <code>.MOS</code>; feche a janela do gráfico para encerrar a execução.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section" id="perguntas">
+      <div class="wrap faq-layout">
+        <div class="section-heading"><span class="eyebrow">Perguntas frequentes</span>
+          <h2>Antes de começar.</h2>
+          <p>Respostas rápidas sobre os limites atuais e o uso do MossView.</p>
+        </div>
+        <div class="faq-list">
+          <article class="faq-item">
+            <h3>Posso enviar meu arquivo pelo site?</h3>
+            <p>Não. Este site apresenta o projeto; ele não processa arquivos no navegador. Para visualizar um espectro,
+              instale o MossView e rode o script localmente.</p>
+          </article>
+          <article class="faq-item">
+            <h3>O MossView ajusta linhas ou determina parâmetros físicos?</h3>
+            <p>Não. A funcionalidade documentada lê os canais e cria um gráfico de transmissão relativa com barras de
+              erro. Não há ajuste de componentes espectrais.</p>
+          </article>
+          <article class="faq-item">
+            <h3>Preciso de um arquivo .JOB?</h3>
+            <p>Não para tentar ler os dados do <code>.MOS</code>. Quando um arquivo <code>.JOB</code> associado é
+              encontrado, o MossView pode usar metadados para título e escala de velocidade, além de executar sua
+              checagem limitada de parâmetros.</p>
+          </article>
+          <article class="faq-item">
+            <h3>O que acontece com o arquivo original?</h3>
+            <p>As correções heurísticas de parâmetros são escritas em um arquivo com sufixo <code>-updated.job</code>,
+              para que você possa revisar a versão gerada. Inspecione-a antes de usar em outro programa.</p>
+          </article>
+          <article class="faq-item">
+            <h3>Onde posso consultar o código e acompanhar o projeto?</h3>
+            <p>O código-fonte, a documentação técnica e o histórico do projeto estão no <a
+                href="https://github.com/JLBBARCO/mossview" target="_blank" rel="noopener noreferrer">repositório
+                MossView no GitHub</a>.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" aria-label="Acesso ao código-fonte">
+      <div class="wrap closing-card">
+        <div><span class="eyebrow">Ciência, dados e transparência</span>
+          <h2>Conheça o código. Experimente com os seus dados.</h2>
+        </div>
+        <a class="button" href="https://github.com/JLBBARCO/mossview" target="_blank" rel="noopener noreferrer">Visitar
+          o repositório <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 12 12 4M5 4h7v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div>
+        <div class="footer-brand"><img src="src/assets/icon/mossview-logo.ico" alt="" width="24" height="24">MossView
+        </div>
+        <div class="footer-copy">Visualização local de espectros Mössbauer · Licença MIT</div>
+      </div>
+      <nav class="footer-links" aria-label="Links do rodapé"><a href="#escopo">Escopo técnico</a><a
+          href="https://github.com/JLBBARCO/mossview/blob/main/README.md" target="_blank"
+          rel="noopener noreferrer">Documentação</a><a href="https://github.com/JLBBARCO/mossview/blob/main/LICENSE"
+          target="_blank" rel="noopener noreferrer">Licença</a></nav>
+    </div>
+  </footer>
+  <script type="module" src="src/js/script.js"></script>
+</body>
+
+</html>

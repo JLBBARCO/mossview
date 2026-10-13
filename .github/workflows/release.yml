@@ -1,0 +1,33 @@
+name: Automated Release
+
+on:
+    push:
+        branches:
+            - main
+            - beta
+        paths-ignore:
+            - "legado/**"
+
+jobs:
+    release:
+        name: Release
+        runs-on: ubuntu-latest
+
+        # Permissões necessárias para o Actions escrever na branch e criar a Release
+        permissions:
+            id-token: write
+            contents: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  sparse-checkout: |
+                      /*
+                      !/legado/
+
+            - name: Python Semantic Release
+              uses: python-semantic-release/python-semantic-release@v10
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}

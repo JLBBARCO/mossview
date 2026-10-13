@@ -1,0 +1,299 @@
+/*
+ * Metodologia desktop-first: pc.css define o layout amplo; este arquivo aplica
+ * substituições por faixa. Use 960px para tablets, 800px para empilhar o hero,
+ * 740px para navegação e layout móvel e 390px para aparelhos estreitos.
+ * tv.css é carregado por último e atende telas com pelo menos 1920px.
+ */
+
+@media (max-width: 960px) {
+    .hero-grid {
+        grid-template-columns: minmax(0, .9fr) minmax(350px, 1.1fr);
+        gap: 38px;
+    }
+
+    .hero {
+        padding-top: 57px;
+    }
+
+    .signal {
+        padding-inline: 17px;
+    }
+
+    .transparency-grid,
+    .start-grid,
+    .faq-layout {
+        gap: 52px;
+    }
+}
+
+@media (max-width: 800px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+    }
+
+    .hero-copy {
+        padding: 0;
+    }
+}
+
+@media (max-width: 740px) {
+    .wrap {
+        width: min(100% - 36px, var(--wrap));
+    }
+
+    .header-inner {
+        min-height: 68px;
+        gap: 10px;
+    }
+
+    .brand-mark {
+        width: 32px;
+        height: 32px;
+    }
+
+    .brand-name {
+        font-size: 17px;
+    }
+
+    .nav {
+        gap: 12px;
+    }
+
+    .nav a {
+        font-size: 11px;
+    }
+
+    .header-cta {
+        min-height: 38px;
+        padding: 0 11px;
+        font-size: 10px;
+    }
+
+    .hero {
+        padding: 48px 0 58px;
+    }
+
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .hero-copy {
+        padding: 0;
+    }
+
+    .hero h1 {
+        max-width: 580px;
+        font-size: clamp(44px, 11vw, 61px);
+    }
+
+    .hero-lead {
+        font-size: 15px;
+    }
+
+    .signal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .signal {
+        min-height: 72px;
+        padding: 12px 0;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .signal:last-child {
+        border-bottom: 0;
+    }
+
+    .signal-icon {
+        width: 34px;
+        height: 34px;
+        flex-basis: 34px;
+    }
+
+    .section {
+        padding: 72px 0;
+    }
+
+    .section-heading {
+        margin-bottom: 31px;
+    }
+
+    .capability-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .capability-card {
+        min-height: 0;
+        padding: 22px;
+    }
+
+    .card-icon {
+        margin-top: 14px;
+    }
+
+    .process-section {
+        padding: 72px 0;
+    }
+
+    .process-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .process-step {
+        min-height: 190px;
+        padding: 21px 17px 22px 0;
+        border-bottom: 1px solid rgb(232 242 227 / 15%);
+    }
+
+    .process-step:not(:last-child) {
+        border-right: 0;
+    }
+
+    .process-step:nth-child(odd) {
+        border-right: 1px solid rgb(232 242 227 / 15%);
+    }
+
+    .process-step:nth-child(even) {
+        padding-left: 17px;
+    }
+
+    .process-step:nth-child(n+3) {
+        border-bottom: 0;
+    }
+
+    .math-strip {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .transparency-grid,
+    .start-grid,
+    .faq-layout {
+        grid-template-columns: 1fr;
+        gap: 36px;
+    }
+
+    .transparency-section {
+        padding: 72px 0;
+    }
+
+    .start-section,
+    .faq-section {
+        padding: 72px 0;
+    }
+
+    .closing {
+        padding-bottom: 56px;
+    }
+
+    .closing-card {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 33px 26px;
+    }
+
+    .closing-card::after {
+        top: -140px;
+        right: -100px;
+    }
+
+    .footer-inner {
+        padding: 23px 0;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 390px) {
+    .header-cta {
+        gap: 5px;
+    }
+
+    .hero-actions .button {
+        width: 100%;
+    }
+
+    .live-tag {
+        max-width: 99px;
+        text-align: center;
+    }
+
+    .footer-links {
+        gap: 13px;
+    }
+}
+
+
+/*
+ * Navegação móvel progressive-enhancement: sem JavaScript os links permanecem
+ * visíveis; com o módulo ativo, o botão abre/fecha o painel acessível.
+ */
+@media (max-width: 740px) {
+    .header-inner {
+        position: relative;
+        flex-wrap: wrap;
+    }
+
+    .nav {
+        position: static;
+        flex: 0 0 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 4px 0;
+    }
+
+    .nav a {
+        display: block;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .nav-toggle {
+        display: none;
+    }
+
+    html.nav-js-ready .nav {
+        position: absolute;
+        top: calc(100% + 1px);
+        right: 0;
+        left: 0;
+        z-index: 22;
+        display: none;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 0 0 10px 10px;
+        background: var(--paper);
+        box-shadow: 0 12px 24px rgb(25 36 30 / 12%);
+    }
+
+    html.nav-js-ready .header-inner.nav-open .nav {
+        display: flex;
+    }
+
+    html.nav-js-ready .nav-toggle {
+        display: inline-flex;
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 390px) {
+    .header-cta {
+        width: 38px;
+        min-width: 38px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .header-cta-label {
+        display: none;
+    }
+}
