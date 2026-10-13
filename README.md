@@ -1,6 +1,6 @@
 # MossView
 
-MossView is a command-line tool for reading Mössbauer spectra and plotting relative transmission. The main application is [`core-app/mossview.py`](core-app/mossview.py). It reads counts from a `.mos` file and, when it finds an associated `.job` file, uses its metadata for the plot title and velocity scale.
+MossView is a command-line tool for reading Mössbauer spectra and plotting relative transmission. The main application is [`src/mossview/cli.py`](src/mossview/cli.py). It reads counts from a `.mos` file and, when it finds an associated `.job` file, uses its metadata for the plot title and velocity scale.
 
 ## Requirements
 
@@ -20,11 +20,12 @@ python -m pip install -r requirements.txt
 
 ## Usage
 
-Run from the repository root and pass a `.mos` or `.job` file:
+After installing the package, pass a `.mos` or `.job` file to either the
+`mossview` command or the module:
 
 ```bash
-python core-app/mossview.py data-control/b025a-26.mos
-python core-app/mossview.py data-control/b025adi.job
+mossview data-control/b025a-26.mos
+python -m mossview data-control/b025adi.job
 ```
 
 When given a `.job`, MossView tries to locate the `.mos` file named near the beginning of the job file, then falls back to a file with the same base name. When given a `.mos`, it looks for a `.job` that references it or has the same base name. Paths are checked as provided, then relative to the script directory.
@@ -50,7 +51,7 @@ This correction is a heuristic for numeric discrepancies and `ARX` values. It is
 
 | Path | Purpose |
 | --- | --- |
-| `core-app/mossview.py` | Main application: file reading, association, limited validation, and plotting. |
+| `src/mossview/cli.py` | Main application: file reading, association, limited validation, and plotting. |
 | `data-control/` | Local sample `.mos`, `.job`, and image files. This directory is ignored by Git. |
 | `legado/main.py` | Independent plotting simulator for damped sine waves and Lissajous curves; it is not called by the current MossView application. |
 | `legado/executables/` | Historical DOS/MBPLOT-related executables, separate from the main application. |
@@ -63,7 +64,7 @@ This correction is a heuristic for numeric discrepancies and `ARX` values. It is
 - The available interface is a CLI with an interactive plot; there is no dedicated GUI or web application.
 - The velocity axis is always linear and symmetric. The program does not use `ND` or `TRIANG` to reconstruct other acquisition geometries.
 - The permissive text parser extracts numeric tokens but does not support every possible `.mos` format.
-- `pyproject.toml` sets `packages = []` and defines no console command. Run the script directly as shown above; the publishing configuration alone does not provide an installed CLI.
+- The package provides both the `mossview` console command and `python -m mossview`.
 - `legado/README.md` describes a historical system and its executables, not the current implementation.
 
 ## Development and releases
