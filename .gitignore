@@ -12,3 +12,6 @@
 *.mos
 *.job
 data-control/
+
+# Node modules
+node_modules/

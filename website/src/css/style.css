@@ -1,0 +1,63 @@
+:root {
+      --paper: #f6f6f0;
+      --paper-deep: #eeefe5;
+      --ink: #19241e;
+      --muted: #68736b;
+      --green: #28523d;
+      --green-dark: #173a2b;
+      --green-pale: #e4ebe3;
+      --acid: #d4ed73;
+      --line: #dfe3d8;
+      --white: #fff;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: "DM Sans", "Helvetica Neue", sans-serif;
+      --display: "Manrope", "DM Sans", sans-serif;
+      --mono: "DM Mono", "SFMono-Regular", Consolas, monospace;
+      --wrap: 1160px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 92px;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid #88a83c;
+      outline-offset: 4px;
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+@media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+    }
