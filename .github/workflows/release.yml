@@ -12,10 +12,7 @@ jobs:
     release:
         name: Release
         runs-on: ubuntu-latest
-
-        # Permissões necessárias para o Actions escrever na branch e criar a Release
         permissions:
-            id-token: write
             contents: write
 
         steps:
@@ -28,7 +25,39 @@ jobs:
                       /*
                       !/legado/
 
-            - name: Python Semantic Release
-              uses: python-semantic-release/python-semantic-release@v10
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Prepare release version
+              id: version
+              env:
+                  BRANCH_NAME: ${{ github.ref_name }}
+              run: |
+                  python .github/scripts/prepare_release.py \
+                    "$BRANCH_NAME" .github/version.txt pyproject.toml
+
+            - name: Commit updated version
+              run: |
+                  if git diff --quiet -- .github/version.txt pyproject.toml; then
+                    echo "Version is already synchronized."
+                    exit 0
+                  fi
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add .github/version.txt pyproject.toml
+                  git commit -m "chore(release): update version to ${{ steps.version.outputs.version }} [skip ci]"
+                  git push
+
+            - name: Build package
+              run: |
+                  python -m pip install --upgrade build
+                  python -m build
+
+            - name: Create GitHub release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  VERSION: ${{ steps.version.outputs.version }}
+                  PRERELEASE: ${{ steps.version.outputs.prerelease }}
+              run: |
+                  args=( "v$VERSION" dist/* --generate-notes )
+                  if [ "$PRERELEASE" = "true" ]; then
+                    args+=( --prerelease )
+                  fi
+                  gh release create "${args[@]}"

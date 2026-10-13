@@ -69,7 +69,16 @@ This correction is a heuristic for numeric discrepancies and `ARX` values. It is
 
 ## Development and releases
 
-Automatic versioning is configured for the `main` and `beta` branches with Python Semantic Release. The publishing workflow builds and uploads the package to PyPI when a GitHub release is published. Packaging configuration and workflows are still evolving; to run the tool locally, use the commands in the Usage section.
+Release versions are controlled by [.github/version.txt](.github/version.txt):
+
+- `main` uses the `release` entry and creates a stable PyPI release.
+- `beta` uses the `pre-release` entry and creates a prerelease. If the entry has no
+  prerelease suffix, the workflow adds `b0` automatically (for example,
+  `1.0.3` becomes `1.0.3b0`).
+
+When the selected version already exists on PyPI or as a Git tag, the release
+workflow increments it automatically, updates `version.txt` and
+`pyproject.toml`, commits those changes, and publishes the new version.
 
 ## License
 
