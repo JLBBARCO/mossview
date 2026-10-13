@@ -51,3 +51,6 @@ prerelease = false
 match = "^beta$"
 prerelease = true
 prerelease_token = "beta"
+
+[tool.semantic_release.remote]
+name = "origin"
