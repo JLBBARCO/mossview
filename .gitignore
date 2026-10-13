@@ -1,3 +1,6 @@
+# VsCode files
+.vscode/
+
 # Python files
 *.pyc
 *.pyo
@@ -8,3 +11,7 @@
 # Mössbauer files
 *.mos
 *.job
+data-control/
+
+# Node modules
+node_modules/

@@ -1,0 +1,37 @@
+/* Large-screen layout for TVs and wide displays. */
+@media (min-width: 1920px) {
+  :root {
+    --wrap: 1440px;
+  }
+
+  .section {
+    padding-block: 128px;
+  }
+
+  .hero {
+    padding-block: 96px 110px;
+  }
+
+  .hero-grid {
+    gap: 88px;
+  }
+
+  .hero h1 {
+    font-size: clamp(66px, 4vw, 82px);
+  }
+
+  .hero-lead {
+    font-size: 19px;
+  }
+
+  .process-step h3 {
+    font-size: 24px;
+  }
+
+  .capability-card p,
+  .process-step p,
+  .limit-item p,
+  .faq-item p {
+    font-size: 15px;
+  }
+}

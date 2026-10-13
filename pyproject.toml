@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mossview"  # Nome do pacote no PyPI
+version = "0.1.0"  # Versão inicial do software
+description = "Um sistema para leitura, processamento e visualização de dados Mössbauer"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name = "Seu Nome", email = "seu.email@exemplo.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    # Coloque aqui as dependências do seu projeto, ex: numpy, matplotlib, customtkinter, etc.
+    "numpy>=1.20.0",
+    "matplotlib>=3.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/seu-usuario/mossview"
+
+[tool.setuptools]
+packages = []
+
+# Configuração de automação de release e versionamento
+[tool.semantic_release]
+version_toml = [
+    "pyproject.toml:project.version",
+]
+commit_parser = "conventional"
+build_command = "pip install build && python -m build"
+
+[tool.semantic_release.branches.main]
+match = "^main$"
+prerelease = false
+
+[tool.semantic_release.branches.beta]
+match = "^beta$"
+prerelease = true
+prerelease_token = "beta"
