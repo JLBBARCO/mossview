@@ -361,7 +361,19 @@ def main():
     mos_path, job_path, job_info = locate_associated_files(resolved_path)
 
     if not mos_path or not mos_path.exists():
-        print(f"[ERROR] Could not find the .MOS data file associated with {resolved_path.name}")
+        referenced_mos = job_info.get('mos_filename') if job_path else None
+        if referenced_mos:
+            expected_path = resolved_path.parent / referenced_mos
+            print(
+                f"[ERROR] Could not find the .MOS data file referenced by "
+                f"{resolved_path.name}: {referenced_mos}"
+            )
+            print(f"[INFO] Expected location: {expected_path}")
+        else:
+            expected_path = resolved_path.with_suffix('.MOS')
+            print(f"[ERROR] Could not find the .MOS data file associated with {resolved_path.name}")
+            print(f"[INFO] Expected location: {expected_path}")
+        print("[INFO] Place the referenced .MOS file in the same directory as the .JOB file and try again.")
         sys.exit(1)
 
     # 1. Read and validate the &PARAM block in the .JOB file
