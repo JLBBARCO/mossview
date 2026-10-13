@@ -15,3 +15,5 @@ data-control/
 
 # Node modules
 node_modules/
+.vercel
+.env*
