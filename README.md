@@ -59,6 +59,17 @@ This correction is a heuristic for numeric discrepancies and `ARX` values. It is
 | `pyproject.toml` | Package metadata and Semantic Release configuration. |
 | `.github/workflows/` | Release and PyPI publishing automation. |
 
+## Website deployment
+
+The static website is configured for Netlify through [`netlify.toml`](netlify.toml).
+The repository root is used as the build base, no build command is required, and
+Netlify publishes the [`website/`](website/) directory directly.
+
+To deploy it, create a new Netlify site linked to this repository and leave the
+build settings empty; the committed configuration supplies the publish
+directory. A custom domain, if needed, must be configured in the Netlify site
+settings.
+
 ## Current scope and limitations
 
 - The available interface is a CLI with an interactive plot; there is no dedicated GUI or web application.
