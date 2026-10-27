@@ -9,25 +9,114 @@ on:
             - "legado/**"
 
 jobs:
-    release:
-        name: Release
+    prepare:
+        name: Prepare release
         runs-on: ubuntu-latest
-
-        # Permissões necessárias para o Actions escrever na branch e criar a Release
         permissions:
-            id-token: write
             contents: write
+
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+            prerelease: ${{ steps.version.outputs.prerelease }}
 
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+                  sparse-checkout-cone-mode: false
                   sparse-checkout: |
                       /*
                       !/legado/
 
-            - name: Python Semantic Release
-              uses: python-semantic-release/python-semantic-release@v10
+            - name: Prepare release version
+              id: version
+              env:
+                  BRANCH_NAME: ${{ github.ref_name }}
+              run: |
+                  python .github/scripts/prepare_release.py \
+                    "$BRANCH_NAME" .github/version.txt pyproject.toml
+
+            - name: Commit updated version
+              run: |
+                  if git diff --quiet -- .github/version.txt pyproject.toml; then
+                    echo "Version is already synchronized."
+                    exit 0
+                  fi
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add .github/version.txt pyproject.toml
+                  git commit -m "chore(release): update version to ${{ steps.version.outputs.version }} [skip ci]"
+                  git push
+
+    build:
+        name: Build ${{ matrix.os }}
+        needs: prepare
+        strategy:
+            fail-fast: false
+            matrix:
+              include:
+                  - os: ubuntu-latest
+                    artifact: mossview-linux
+                    asset: MossView-linux
+                    script: bash src/mossview/build.sh
+                  - os: windows-latest
+                    artifact: mossview-windows
+                    asset: MossView-windows.exe
+                    script: .\src\mossview\build.bat
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
               with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                python-version: "3.11"
+
+            - name: Install build dependencies
+              run: |
+                python -m pip install --upgrade pip
+                python -m pip install . pyinstaller
+
+            - name: Build executable
+              shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
+              env:
+                MOSSVIEW_OUTPUT_NAME: ${{ matrix.asset }}
+              run: ${{ matrix.script }}
+
+            - name: Upload executable
+              uses: actions/upload-artifact@v4
+              with:
+                name: ${{ matrix.artifact }}
+                path: dist/${{ matrix.asset }}
+                if-no-files-found: error
+
+    release:
+        name: Publish GitHub release
+        needs:
+            - prepare
+            - build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Download compiled executables
+              uses: actions/download-artifact@v4
+              with:
+                path: dist
+                merge-multiple: true
+
+            - name: Create GitHub release
+              env:
+                GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                VERSION: ${{ needs.prepare.outputs.version }}
+                PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+              run: |
+                args=( "v$VERSION" dist/* --generate-notes )
+                if [ "$PRERELEASE" = "true" ]; then
+                  args+=( --prerelease )
+                else
+                  args+=( --latest )
+                fi
+                gh release create "${args[@]}"

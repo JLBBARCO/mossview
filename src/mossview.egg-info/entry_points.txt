@@ -1,0 +1,3 @@
+[console_scripts]
+mossview = mossview.cli:main
+mossview-gui = mossview.gui:main

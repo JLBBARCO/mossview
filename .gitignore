@@ -15,3 +15,8 @@ data-control/
 
 # Node modules
 node_modules/
+.vercel
+.env*
+
+# Local Netlify folder
+.netlify
