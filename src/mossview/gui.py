@@ -54,14 +54,102 @@ from tkinter import filedialog, messagebox
 # Tentativa de inicialização com CustomTkinter para visual moderno
 try:
     import customtkinter as ctk
+
     HAS_CUSTOMTKINTER = True
 except ImportError:
     HAS_CUSTOMTKINTER = False
     import tkinter as ctk
+    from tkinter import font as tkfont
+
+    class _TkCompatFrame(tk.Frame):
+        def __init__(self, master=None, **kwargs):
+            if "border_width" in kwargs:
+                kwargs["borderwidth"] = kwargs.pop("border_width")
+            for name in ("corner_radius", "border_color", "fg_color", "hover_color"):
+                kwargs.pop(name, None)
+            super().__init__(master, **kwargs)
+
+    class _TkCompatLabel(tk.Label):
+        def __init__(self, master=None, **kwargs):
+            if "text_color" in kwargs:
+                kwargs["fg"] = kwargs.pop("text_color")
+            kwargs.pop("fg_color", None)
+            kwargs.pop("corner_radius", None)
+            super().__init__(master, **kwargs)
+
+    class _TkCompatButton(tk.Button):
+        def __init__(self, master=None, **kwargs):
+            if "fg_color" in kwargs:
+                kwargs["bg"] = kwargs.pop("fg_color")
+            kwargs.pop("hover_color", None)
+            kwargs.pop("corner_radius", None)
+            super().__init__(master, **kwargs)
+
+    class _TkCompatCheckBox(tk.Checkbutton):
+        def __init__(self, master=None, **kwargs):
+            if "text_color" in kwargs:
+                kwargs["fg"] = kwargs.pop("text_color")
+            if "fg_color" in kwargs:
+                kwargs["selectcolor"] = kwargs.pop("fg_color")
+            kwargs.pop("hover_color", None)
+            kwargs.pop("corner_radius", None)
+            super().__init__(master, **kwargs)
+
+    class _TkCompatTextbox(tk.Text):
+        def __init__(self, master=None, **kwargs):
+            kwargs.pop("corner_radius", None)
+            kwargs.pop("fg_color", None)
+            kwargs.pop("text_color", None)
+            super().__init__(master, **kwargs)
+
+    class _TkCompatOptionMenu(tk.OptionMenu):
+        def __init__(self, master, variable, *values, command=None, **kwargs):
+            kwargs.pop("corner_radius", None)
+            kwargs.pop("fg_color", None)
+            kwargs.pop("button_color", None)
+            kwargs.pop("button_hover_color", None)
+            super().__init__(master, variable, *values, command=command, **kwargs)
+
+    class _TkCompatTabview(tk.Frame):
+        def __init__(self, master=None, **kwargs):
+            super().__init__(master, **kwargs)
+            self._tabs = {}
+            self._active_tab = None
+
+        def add(self, name):
+            frame = tk.Frame(self)
+            self._tabs[name] = frame
+            if self._active_tab is None:
+                self._active_tab = name
+                frame.pack(fill="both", expand=True)
+            return frame
+
+        def set(self, name):
+            if name not in self._tabs:
+                return
+            if self._active_tab is not None:
+                self._tabs[self._active_tab].pack_forget()
+            self._active_tab = name
+            self._tabs[name].pack(fill="both", expand=True)
+
+    class _TkCompat:
+        CTk = tk.Tk
+        CTkFrame = _TkCompatFrame
+        CTkScrollableFrame = _TkCompatFrame
+        CTkLabel = _TkCompatLabel
+        CTkButton = _TkCompatButton
+        CTkCheckBox = _TkCompatCheckBox
+        CTkTextbox = _TkCompatTextbox
+        CTkOptionMenu = _TkCompatOptionMenu
+        CTkTabview = _TkCompatTabview
+        CTkFont = tkfont.Font
+
+    ctk = _TkCompat()
 
 # Tentativa de suporte nativo a Drag and Drop via TkinterDnD2
 try:
     from tkinterdnd2 import TkinterDnD, DND_FILES
+
     HAS_DND = True
 except ImportError:
     HAS_DND = False
@@ -69,14 +157,15 @@ except ImportError:
 
 # Matplotlib embedding
 import matplotlib
-matplotlib.use('TkAgg')
+
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
 
 # Definição da classe base com suporte a Drag & Drop
 if HAS_CUSTOMTKINTER:
     if HAS_DND:
+
         class BaseAppWindow(ctk.CTk, TkinterDnD.DnDWrapper):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
@@ -84,11 +173,15 @@ if HAS_CUSTOMTKINTER:
                     self.TkdndVersion = TkinterDnD._require(self)
                 except Exception:
                     pass
+
     else:
+
         class BaseAppWindow(ctk.CTk):
             pass
+
 else:
     if HAS_DND:
+
         class BaseAppWindow(tk.Tk, TkinterDnD.DnDWrapper):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
@@ -96,7 +189,9 @@ else:
                     self.TkdndVersion = TkinterDnD._require(self)
                 except Exception:
                     pass
+
     else:
+
         class BaseAppWindow(tk.Tk):
             pass
 
@@ -115,7 +210,9 @@ class MossViewGUI(BaseAppWindow):
         self.geometry("1240x820")
         self.minsize(980, 680)
 
-        # Configura ícone da janela se disponível
+        self.logo_image = None
+        self.window_icon_image = None
+        self._load_brand_images()
         self._set_window_icon()
 
         if HAS_CUSTOMTKINTER:
@@ -136,15 +233,31 @@ class MossViewGUI(BaseAppWindow):
         if initial_file:
             self.load_file(initial_file)
 
-    def _set_window_icon(self):
-        """Define o ícone da aplicação de forma segura e multiplataforma."""
+    def _load_brand_images(self):
+        """Carrega o PNG da marca para uso no cabeçalho e no ícone da janela."""
         try:
-            icon_path = Path(__file__).parent / "assets" / "icon" / "mossview-logo.ico"
-            if icon_path.exists():
-                if sys.platform.startswith('win'):
-                    self.iconbitmap(str(icon_path))
-        except Exception:
-            pass
+            logo_path = Path(__file__).parent / "assets" / "icon" / "mossview-logo.png"
+            if not logo_path.exists():
+                return
+
+            self.window_icon_image = tk.PhotoImage(file=str(logo_path))
+            if HAS_CUSTOMTKINTER:
+                from PIL import Image
+
+                pil_logo = Image.open(logo_path)
+                self.logo_image = ctk.CTkImage(
+                    light_image=pil_logo, dark_image=pil_logo, size=(42, 42)
+                )
+            else:
+                self.logo_image = self.window_icon_image.subsample(4, 4)
+        except (OSError, ImportError, tk.TclError):
+            self.logo_image = None
+            self.window_icon_image = None
+
+    def _set_window_icon(self):
+        """Define o PNG da marca como ícone da janela."""
+        if self.window_icon_image is not None:
+            self.iconphoto(True, self.window_icon_image)
 
     def _build_layout(self):
         """Monta o grid principal e os componentes visuais."""
@@ -155,8 +268,10 @@ class MossViewGUI(BaseAppWindow):
         # Logo / Título
         title_label = ctk.CTkLabel(
             self.top_frame,
-            text="🔬 MossView",
-            font=ctk.CTkFont(size=20, weight="bold")
+            text="MossView",
+            image=self.logo_image,
+            compound="left",
+            font=ctk.CTkFont(size=20, weight="bold"),
         )
         title_label.pack(side="left", padx=20, pady=8)
 
@@ -164,7 +279,7 @@ class MossViewGUI(BaseAppWindow):
             self.top_frame,
             text="| Leitura, Análise e Visualização Mössbauer (Substituto NORMOS)",
             font=ctk.CTkFont(size=12, slant="italic"),
-            text_color="gray70"
+            text_color="gray70",
         )
         subtitle_label.pack(side="left", padx=0, pady=8)
 
@@ -174,7 +289,7 @@ class MossViewGUI(BaseAppWindow):
                 self.top_frame,
                 values=["Dark", "Light", "System"],
                 command=self._on_theme_change,
-                width=100
+                width=100,
             )
             self.theme_switch.set("Dark")
             self.theme_switch.pack(side="right", padx=16, pady=8)
@@ -184,7 +299,7 @@ class MossViewGUI(BaseAppWindow):
             self.top_frame,
             text="📂 Abrir no Explorador",
             width=150,
-            command=self.open_current_in_explorer
+            command=self.open_current_in_explorer,
         )
         self.btn_open_folder.pack(side="right", padx=10, pady=8)
 
@@ -193,12 +308,16 @@ class MossViewGUI(BaseAppWindow):
         self.main_container.pack(side="top", fill="both", expand=True, padx=8, pady=8)
 
         # Painel Lateral Esquerdo (Controles e Drag & Drop)
-        self.left_panel = ctk.CTkScrollableFrame(self.main_container, width=380, corner_radius=8)
+        self.left_panel = ctk.CTkScrollableFrame(
+            self.main_container, width=380, corner_radius=8
+        )
         self.left_panel.pack(side="left", fill="y", padx=(4, 8), pady=4)
 
         # Painel Direito (Abas de Gráficos e Resultados)
         self.right_panel = ctk.CTkFrame(self.main_container, corner_radius=8)
-        self.right_panel.pack(side="right", fill="both", expand=True, padx=(0, 4), pady=4)
+        self.right_panel.pack(
+            side="right", fill="both", expand=True, padx=(0, 4), pady=4
+        )
 
         self._build_drop_zone()
         self._build_file_info_card()
@@ -212,15 +331,13 @@ class MossViewGUI(BaseAppWindow):
             corner_radius=12,
             border_width=2,
             border_color="#3B8ED0" if HAS_CUSTOMTKINTER else "blue",
-            fg_color=("gray85", "#20242B")
+            fg_color=("gray85", "#20242B"),
         )
         self.drop_frame.pack(fill="x", padx=8, pady=(8, 12), ipady=12)
 
         # Ícone / Símbolo
         self.drop_icon = ctk.CTkLabel(
-            self.drop_frame,
-            text="📥",
-            font=ctk.CTkFont(size=36)
+            self.drop_frame, text="📥", font=ctk.CTkFont(size=36)
         )
         self.drop_icon.pack(pady=(8, 2))
 
@@ -228,7 +345,7 @@ class MossViewGUI(BaseAppWindow):
         self.drop_title = ctk.CTkLabel(
             self.drop_frame,
             text="Arraste o arquivo aqui",
-            font=ctk.CTkFont(size=15, weight="bold")
+            font=ctk.CTkFont(size=15, weight="bold"),
         )
         self.drop_title.pack(pady=2)
 
@@ -238,7 +355,7 @@ class MossViewGUI(BaseAppWindow):
             text="Formatos: .JOB, .MOS, .MCS\nou clique para navegar no Explorador",
             font=ctk.CTkFont(size=12),
             text_color="gray60",
-            justify="center"
+            justify="center",
         )
         self.drop_sub.pack(pady=2)
 
@@ -248,7 +365,7 @@ class MossViewGUI(BaseAppWindow):
             text="🔍 Selecionar Arquivo",
             command=self.browse_file,
             width=160,
-            height=32
+            height=32,
         )
         self.btn_select.pack(pady=(8, 6))
 
@@ -276,7 +393,7 @@ class MossViewGUI(BaseAppWindow):
         """Registra widget como receptor de Drag and Drop se suportado."""
         try:
             widget.drop_target_register(DND_FILES)
-            widget.dnd_bind('<<Drop>>', self._on_dnd_drop)
+            widget.dnd_bind("<<Drop>>", self._on_dnd_drop)
         except Exception:
             pass
 
@@ -306,17 +423,21 @@ class MossViewGUI(BaseAppWindow):
                 if first_file:
                     self.load_file(first_file)
         except Exception as e:
-            messagebox.showerror("Erro de Leitura", f"Falha ao processar arquivo arrastado:\n{e}")
+            messagebox.showerror(
+                "Erro de Leitura", f"Falha ao processar arquivo arrastado:\n{e}"
+            )
 
     def browse_file(self):
         """
         Abre o Explorador de Arquivos nativo do sistema operacional.
         100% compatível com Windows (Explorer), Linux (GTK/KDE) e macOS (Finder).
         """
-        initial_dir = self.current_file_path.parent if self.current_file_path else Path.cwd()
+        initial_dir = (
+            self.current_file_path.parent if self.current_file_path else Path.cwd()
+        )
         selected = open_file_dialog_native(
             title="Selecionar Arquivo Mössbauer (.JOB, .MOS, .MCS)",
-            initial_dir=initial_dir
+            initial_dir=initial_dir,
         )
         if selected:
             self.load_file(str(selected))
@@ -329,7 +450,7 @@ class MossViewGUI(BaseAppWindow):
         card_title = ctk.CTkLabel(
             self.info_card,
             text="📄 Informações do Arquivo",
-            font=ctk.CTkFont(size=13, weight="bold")
+            font=ctk.CTkFont(size=13, weight="bold"),
         )
         card_title.pack(anchor="w", padx=10, pady=(8, 4))
 
@@ -339,7 +460,7 @@ class MossViewGUI(BaseAppWindow):
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color="gray70",
             anchor="w",
-            wraplength=340
+            wraplength=340,
         )
         self.lbl_file_name.pack(fill="x", padx=10, pady=2)
 
@@ -349,7 +470,7 @@ class MossViewGUI(BaseAppWindow):
             font=ctk.CTkFont(size=11),
             text_color="gray60",
             anchor="w",
-            wraplength=340
+            wraplength=340,
         )
         self.lbl_pair_info.pack(fill="x", padx=10, pady=2)
 
@@ -359,7 +480,7 @@ class MossViewGUI(BaseAppWindow):
             font=ctk.CTkFont(size=11),
             text_color="gray60",
             anchor="w",
-            wraplength=340
+            wraplength=340,
         )
         self.lbl_stats.pack(fill="x", padx=10, pady=(2, 8))
 
@@ -371,7 +492,7 @@ class MossViewGUI(BaseAppWindow):
         actions_title = ctk.CTkLabel(
             self.actions_frame,
             text="⚙️ Opções & Ações NORMOS",
-            font=ctk.CTkFont(size=13, weight="bold")
+            font=ctk.CTkFont(size=13, weight="bold"),
         )
         actions_title.pack(anchor="w", padx=10, pady=(8, 6))
 
@@ -381,7 +502,7 @@ class MossViewGUI(BaseAppWindow):
             self.actions_frame,
             text="Dobragem Simétrica (Folding)",
             variable=self.chk_fold_var,
-            command=self._on_folding_toggle
+            command=self._on_folding_toggle,
         )
         self.chk_fold.pack(anchor="w", padx=10, pady=4)
 
@@ -391,7 +512,7 @@ class MossViewGUI(BaseAppWindow):
             text="📈 Atualizar Gráfico (MBPLOT)",
             command=self.refresh_plot,
             fg_color="#1f77b4",
-            hover_color="#185c8c"
+            hover_color="#185c8c",
         )
         self.btn_plot.pack(fill="x", padx=10, pady=4)
 
@@ -401,7 +522,7 @@ class MossViewGUI(BaseAppWindow):
             text="🖥️ Abrir em Janela Separada",
             command=self.open_external_plot,
             fg_color="#4a5568",
-            hover_color="#2d3748"
+            hover_color="#2d3748",
         )
         self.btn_popout.pack(fill="x", padx=10, pady=4)
 
@@ -411,7 +532,7 @@ class MossViewGUI(BaseAppWindow):
             text="🔍 Inspecionar Detector (READMCS)",
             command=self.show_readmcs_dialog,
             fg_color="#2b6cb0",
-            hover_color="#1c4775"
+            hover_color="#1c4775",
         )
         self.btn_readmcs.pack(fill="x", padx=10, pady=4)
 
@@ -421,7 +542,7 @@ class MossViewGUI(BaseAppWindow):
             text="⚛️ Parâmetros Físicos (WSITE/WDIST)",
             command=self.show_physics_info,
             fg_color="#2b6cb0",
-            hover_color="#1c4775"
+            hover_color="#1c4775",
         )
         self.btn_info.pack(fill="x", padx=10, pady=4)
 
@@ -431,7 +552,7 @@ class MossViewGUI(BaseAppWindow):
             text="💾 Exportar Dados (WCONVERT)",
             command=self.export_data_dialog,
             fg_color="#2f855a",
-            hover_color="#22543d"
+            hover_color="#22543d",
         )
         self.btn_export.pack(fill="x", padx=10, pady=4)
 
@@ -441,7 +562,7 @@ class MossViewGUI(BaseAppWindow):
             text="📊 Simular Espectro (WSIMDATA)",
             command=self.run_simulation_dialog,
             fg_color="#6b46c1",
-            hover_color="#44337a"
+            hover_color="#44337a",
         )
         self.btn_sim.pack(fill="x", padx=10, pady=4)
 
@@ -451,7 +572,7 @@ class MossViewGUI(BaseAppWindow):
             text="🛠️ Validar e Corrigir &PARAM",
             command=self.validate_param_dialog,
             fg_color="#c53030",
-            hover_color="#9b2c2c"
+            hover_color="#9b2c2c",
         )
         self.btn_validate.pack(fill="x", padx=10, pady=(4, 10))
 
@@ -472,17 +593,24 @@ class MossViewGUI(BaseAppWindow):
             self.plot_container,
             text="Arraste um arquivo .JOB ou .MOS para a caixa à esquerda,\nou clique para selecionar no Explorador de Arquivos.",
             font=ctk.CTkFont(size=14, slant="italic"),
-            text_color="gray60"
+            text_color="gray60",
         )
         self.placeholder_label.pack(expand=True)
 
         # Configura a aba de detalhes
-        self.text_params = ctk.CTkTextbox(self.tab_params, font=ctk.CTkFont(family="Consolas", size=12))
+        self.text_params = ctk.CTkTextbox(
+            self.tab_params, font=ctk.CTkFont(family="Consolas", size=12)
+        )
         self.text_params.pack(fill="both", expand=True, padx=6, pady=6)
-        self.text_params.insert("0.0", "Carregue um arquivo para visualizar os parâmetros físicos e de aquisição.")
+        self.text_params.insert(
+            "0.0",
+            "Carregue um arquivo para visualizar os parâmetros físicos e de aquisição.",
+        )
 
         # Configura a aba de logs
-        self.text_log = ctk.CTkTextbox(self.tab_log, font=ctk.CTkFont(family="Consolas", size=11))
+        self.text_log = ctk.CTkTextbox(
+            self.tab_log, font=ctk.CTkFont(family="Consolas", size=11)
+        )
         self.text_log.pack(fill="both", expand=True, padx=6, pady=6)
         self._log("MossView GUI iniciado com sucesso.")
 
@@ -509,17 +637,21 @@ class MossViewGUI(BaseAppWindow):
             resolved = resolve_file_path(file_path_str)
 
             if not resolved.exists():
-                messagebox.showerror("Erro", f"Arquivo não encontrado:\n{file_path_str}")
+                messagebox.showerror(
+                    "Erro", f"Arquivo não encontrado:\n{file_path_str}"
+                )
                 return
 
             self.current_file_path = resolved
 
             # Carrega dados do espectro através do pipeline central
             apply_fold = self.chk_fold_var.get()
-            self.spectrum_data = load_and_process_spectrum(str(resolved), fold=apply_fold)
+            self.spectrum_data = load_and_process_spectrum(
+                str(resolved), fold=apply_fold
+            )
 
             # Atualiza o estado da dobragem se foi aplicada automaticamente
-            if self.spectrum_data['folding_applied']:
+            if self.spectrum_data["folding_applied"]:
                 self.chk_fold_var.set(True)
 
             # Atualiza informações na interface
@@ -532,11 +664,13 @@ class MossViewGUI(BaseAppWindow):
             self._update_details_tab()
 
             self._log(f"[OK] Espectro carregado com sucesso: {resolved.name}")
-            for w in self.spectrum_data.get('warnings', []):
+            for w in self.spectrum_data.get("warnings", []):
                 self._log(f"[AVISO] &PARAM: {w}")
 
         except Exception as e:
-            messagebox.showerror("Erro de Processamento", f"Falha ao carregar espectro:\n{e}")
+            messagebox.showerror(
+                "Erro de Processamento", f"Falha ao carregar espectro:\n{e}"
+            )
             self._log(f"[ERRO] {e}")
 
     def _update_info_display(self):
@@ -544,9 +678,9 @@ class MossViewGUI(BaseAppWindow):
         if not self.spectrum_data:
             return
 
-        resolved = self.spectrum_data['resolved_path']
-        job_p = self.spectrum_data.get('job_path')
-        mos_p = self.spectrum_data.get('mos_path')
+        resolved = self.spectrum_data["resolved_path"]
+        job_p = self.spectrum_data.get("job_path")
+        mos_p = self.spectrum_data.get("mos_path")
 
         self.lbl_file_name.configure(text=f"📄 {resolved.name}")
 
@@ -555,10 +689,10 @@ class MossViewGUI(BaseAppWindow):
             pair_str += f" | JOB: {job_p.name}"
         self.lbl_pair_info.configure(text=pair_str)
 
-        counts = self.spectrum_data['counts']
-        vmax = self.spectrum_data['vmax']
-        bkg = self.spectrum_data['job_info'].get('bkg') or np.max(counts)
-        chi2 = self.spectrum_data['job_info'].get('chi2')
+        counts = self.spectrum_data["counts"]
+        vmax = self.spectrum_data["vmax"]
+        bkg = self.spectrum_data["job_info"].get("bkg") or np.max(counts)
+        chi2 = self.spectrum_data["job_info"].get("chi2")
         chi2_str = f"{chi2:.2f}" if chi2 is not None else "N/A"
 
         stats_text = (
@@ -592,10 +726,10 @@ class MossViewGUI(BaseAppWindow):
                 self.toolbar = None
 
             # Cria nova figura Matplotlib
-            has_residuals = self.spectrum_data.get('y_theo') is not None
+            has_residuals = self.spectrum_data.get("y_theo") is not None
             has_distribution = (
-                self.spectrum_data.get('model') is not None and
-                self.spectrum_data['model'].hyperfine_distribution is not None
+                self.spectrum_data.get("model") is not None
+                and self.spectrum_data["model"].hyperfine_distribution is not None
             )
 
             # Ajusta tamanho relativo da figura
@@ -604,17 +738,21 @@ class MossViewGUI(BaseAppWindow):
 
             # Renderiza utilizando a rotina científica unificada MBPLOT
             plot_mossbauer(
-                velocity=self.spectrum_data['velocity'],
-                counts=self.spectrum_data['counts'],
-                title=self.spectrum_data['title'],
-                job_name=self.spectrum_data['job_path'].name if self.spectrum_data.get('job_path') else "Nenhum",
-                mos_name=self.spectrum_data['mos_path'].name,
-                y_theo=self.spectrum_data['y_theo'],
-                subspectra=self.spectrum_data['subspectra'],
-                model=self.spectrum_data['model'],
+                velocity=self.spectrum_data["velocity"],
+                counts=self.spectrum_data["counts"],
+                title=self.spectrum_data["title"],
+                job_name=(
+                    self.spectrum_data["job_path"].name
+                    if self.spectrum_data.get("job_path")
+                    else "Nenhum"
+                ),
+                mos_name=self.spectrum_data["mos_path"].name,
+                y_theo=self.spectrum_data["y_theo"],
+                subspectra=self.spectrum_data["subspectra"],
+                model=self.spectrum_data["model"],
                 show_gui=False,
                 return_fig=True,
-                fig=self.fig
+                fig=self.fig,
             )
 
             # Embarca a figura no Tkinter Canvas
@@ -628,7 +766,9 @@ class MossViewGUI(BaseAppWindow):
 
             self.tabview.set("📈 Espectro Mössbauer")
         except Exception as e:
-            messagebox.showerror("Erro de Plotagem", f"Falha ao renderizar gráfico:\n{e}")
+            messagebox.showerror(
+                "Erro de Plotagem", f"Falha ao renderizar gráfico:\n{e}"
+            )
             self._log(f"[ERRO PLOT] {e}")
 
     def open_external_plot(self):
@@ -639,16 +779,20 @@ class MossViewGUI(BaseAppWindow):
 
         try:
             plot_mossbauer(
-                velocity=self.spectrum_data['velocity'],
-                counts=self.spectrum_data['counts'],
-                title=self.spectrum_data['title'],
-                job_name=self.spectrum_data['job_path'].name if self.spectrum_data.get('job_path') else "Nenhum",
-                mos_name=self.spectrum_data['mos_path'].name,
-                y_theo=self.spectrum_data['y_theo'],
-                subspectra=self.spectrum_data['subspectra'],
-                model=self.spectrum_data['model'],
+                velocity=self.spectrum_data["velocity"],
+                counts=self.spectrum_data["counts"],
+                title=self.spectrum_data["title"],
+                job_name=(
+                    self.spectrum_data["job_path"].name
+                    if self.spectrum_data.get("job_path")
+                    else "Nenhum"
+                ),
+                mos_name=self.spectrum_data["mos_path"].name,
+                y_theo=self.spectrum_data["y_theo"],
+                subspectra=self.spectrum_data["subspectra"],
+                model=self.spectrum_data["model"],
                 show_gui=True,
-                dpi=150
+                dpi=150,
             )
         except Exception as e:
             messagebox.showerror("Erro", f"Não foi possível abrir janela externa:\n{e}")
@@ -658,18 +802,22 @@ class MossViewGUI(BaseAppWindow):
         if not self.spectrum_data:
             return
 
-        info = self.spectrum_data.get('job_info', {})
-        meta = self.spectrum_data.get('meta', {})
-        counts = self.spectrum_data.get('counts', [])
+        info = self.spectrum_data.get("job_info", {})
+        meta = self.spectrum_data.get("meta", {})
+        counts = self.spectrum_data.get("counts", [])
 
         lines = []
         lines.append("=" * 70)
         lines.append(" MOSSVIEW - RELATÓRIO TÉCNICO E METADADOS DO ESPECTRO")
         lines.append("=" * 70)
-        lines.append(f"Arquivo Principal   : {self.spectrum_data['resolved_path'].name}")
-        lines.append(f"Caminho Completo    : {self.spectrum_data['resolved_path'].resolve()}")
+        lines.append(
+            f"Arquivo Principal   : {self.spectrum_data['resolved_path'].name}"
+        )
+        lines.append(
+            f"Caminho Completo    : {self.spectrum_data['resolved_path'].resolve()}"
+        )
         lines.append(f"Arquivo .MOS        : {self.spectrum_data['mos_path'].name}")
-        if self.spectrum_data.get('job_path'):
+        if self.spectrum_data.get("job_path"):
             lines.append(f"Arquivo .JOB        : {self.spectrum_data['job_path'].name}")
         lines.append(f"Título              : {info.get('title') or 'N/A'}")
         lines.append(f"VMAX (Velocidade)   : {info.get('vmax')} mm/s")
@@ -681,14 +829,18 @@ class MossViewGUI(BaseAppWindow):
         lines.append("\n" + "-" * 70)
         lines.append(" AQUISIÇÃO E DETECTOR (READMCS)")
         lines.append("-" * 70)
-        if meta.get('time'):
-            t_sec = meta['time']
-            lines.append(f"Tempo de Medida     : {t_sec:.1f} s ({t_sec/3600.0:.2f} horas)")
+        if meta.get("time"):
+            t_sec = meta["time"]
+            lines.append(
+                f"Tempo de Medida     : {t_sec:.1f} s ({t_sec/3600.0:.2f} horas)"
+            )
             if t_sec > 0:
                 lines.append(f"Taxa de Contagem    : {np.sum(counts)/t_sec:.2f} CPS")
-        if meta.get('device'):
-            lines.append(f"Dispositivo MCA     : #{meta['device']} (Firmware: {meta.get('firmware')})")
-        if meta.get('mode'):
+        if meta.get("device"):
+            lines.append(
+                f"Dispositivo MCA     : #{meta['device']} (Firmware: {meta.get('firmware')})"
+            )
+        if meta.get("mode"):
             lines.append(f"Modo de Aquisição   : {meta['mode']}")
 
         total_c = np.sum(counts)
@@ -696,36 +848,60 @@ class MossViewGUI(BaseAppWindow):
         lines.append(f"Média / Canal       : {np.mean(counts):.1f}")
         lines.append(f"Máxima Contagem     : {int(np.max(counts)):,}")
         lines.append(f"Mínima Contagem     : {int(np.min(counts)):,}")
-        depth = ((np.max(counts) - np.min(counts)) / np.max(counts)) * 100.0 if np.max(counts) > 0 else 0
+        depth = (
+            ((np.max(counts) - np.min(counts)) / np.max(counts)) * 100.0
+            if np.max(counts) > 0
+            else 0
+        )
         lines.append(f"Efeito de Absorção  : {depth:.2f}%")
 
         # Sítios cristalinos
-        sites = info.get('sites', [])
+        sites = info.get("sites", [])
         lines.append("\n" + "-" * 70)
         lines.append(f" SÍTIOS CRISTALINOS DISCRETOS (WSITE) : {len(sites)} sítio(s)")
         lines.append("-" * 70)
         for s in sites:
-            t_name = "Singleto" if s['lines'] == 1 else "Dubleto" if s['lines'] == 2 else "Sexteto"
-            rel_str = f"{s['rel_area']:.2f}%" if s.get('rel_area') is not None else "N/A"
+            t_name = (
+                "Singleto"
+                if s["lines"] == 1
+                else "Dubleto" if s["lines"] == 2 else "Sexteto"
+            )
+            rel_str = (
+                f"{s['rel_area']:.2f}%" if s.get("rel_area") is not None else "N/A"
+            )
             lines.append(f" Sítio #{s['index']} ({t_name}):")
-            lines.append(f"   Área Subespectro  : {s['area']:.5f} mm/s (Relativa: {rel_str})")
+            lines.append(
+                f"   Área Subespectro  : {s['area']:.5f} mm/s (Relativa: {rel_str})"
+            )
             lines.append(f"   Isomer Shift (IS) : {s['is']:+.5f} mm/s")
             lines.append(f"   Quadrupole Split  : {s['qs']:+.5f} mm/s")
             lines.append(f"   Largura (FWHM)    : {s['fwhm']:.5f} mm/s")
-            if s.get('bhf', 0) > 0:
+            if s.get("bhf", 0) > 0:
                 lines.append(f"   Campo Hiperfino   : {s['bhf']:.2f} Tesla")
 
         # Distribuição P(B)
-        dist = info.get('distribution')
-        if dist and dist.get('active'):
-            pct_str = f"{dist['rel_area_pct']:.2f}%" if dist.get('rel_area_pct') is not None else "N/A"
+        dist = info.get("distribution")
+        if dist and dist.get("active"):
+            pct_str = (
+                f"{dist['rel_area_pct']:.2f}%"
+                if dist.get("rel_area_pct") is not None
+                else "N/A"
+            )
             lines.append("\n" + "-" * 70)
             lines.append(" DISTRIBUIÇÃO CONTÍNUA DE CAMPO HIPERFINO (WDIST)")
             lines.append("-" * 70)
-            lines.append(f"   Campo Médio <Bhf> : {dist['bhf_avg']:.2f} +/- {dist['bhf_std']:.2f} Tesla")
-            lines.append(f"   Área da Distr.    : {dist['area']:.5f} mm/s (Relativa: {pct_str})")
-            lines.append(f"   Faixa de Campo    : {dist['bhf_start']:.2f} a {dist['bhf_start'] + dist['nsb']*dist['dtb']:.2f} Tesla")
-            lines.append(f"   Passos da Grade   : {dist['nsb']} passos de {dist['dtb']:.2f} Tesla")
+            lines.append(
+                f"   Campo Médio <Bhf> : {dist['bhf_avg']:.2f} +/- {dist['bhf_std']:.2f} Tesla"
+            )
+            lines.append(
+                f"   Área da Distr.    : {dist['area']:.5f} mm/s (Relativa: {pct_str})"
+            )
+            lines.append(
+                f"   Faixa de Campo    : {dist['bhf_start']:.2f} a {dist['bhf_start'] + dist['nsb']*dist['dtb']:.2f} Tesla"
+            )
+            lines.append(
+                f"   Passos da Grade   : {dist['nsb']} passos de {dist['dtb']:.2f} Tesla"
+            )
             lines.append(f"   IS Médio          : {dist['iso']:+.5f} mm/s")
             lines.append(f"   QS Médio          : {dist['qua']:+.5f} mm/s")
             lines.append(f"   Largura Intrínseca: {dist['wid']:.5f} mm/s")
@@ -755,64 +931,70 @@ class MossViewGUI(BaseAppWindow):
             messagebox.showinfo("Aviso", "Nenhum dado disponível para exportação.")
             return
 
-        default_name = self.spectrum_data['mos_path'].stem + ".lst"
+        default_name = self.spectrum_data["mos_path"].stem + ".lst"
         filetypes = [
             ("Arquivo de Colunas LST (*.lst)", "*.lst"),
             ("Arquivo CSV Delimitado (*.csv)", "*.csv"),
             ("Arquivo de Dados DAT (*.dat)", "*.dat"),
-            ("Todos os arquivos (*.*)", "*.*")
+            ("Todos os arquivos (*.*)", "*.*"),
         ]
 
         out_path = filedialog.asksaveasfilename(
             parent=self,
             title="Exportar Espectro Mössbauer Formatado (WCONVERT)",
             initialfile=default_name,
-            filetypes=filetypes
+            filetypes=filetypes,
         )
 
         if not out_path:
             return
 
         out_p = Path(out_path)
-        fmt = out_p.suffix.lstrip('.').lower() or 'lst'
+        fmt = out_p.suffix.lstrip(".").lower() or "lst"
 
         try:
             export_converted_data(
                 output_path=out_p,
-                velocity=self.spectrum_data['velocity'],
-                counts=self.spectrum_data['counts'],
-                y_theo=self.spectrum_data.get('y_theo'),
-                subspectra=self.spectrum_data.get('subspectra'),
-                metadata=self.spectrum_data.get('job_info'),
-                fmt=fmt
+                velocity=self.spectrum_data["velocity"],
+                counts=self.spectrum_data["counts"],
+                y_theo=self.spectrum_data.get("y_theo"),
+                subspectra=self.spectrum_data.get("subspectra"),
+                metadata=self.spectrum_data.get("job_info"),
+                fmt=fmt,
             )
-            messagebox.showinfo("Sucesso", f"Espectro exportado com sucesso para:\n{out_p}")
+            messagebox.showinfo(
+                "Sucesso", f"Espectro exportado com sucesso para:\n{out_p}"
+            )
             self._log(f"[OK WCONVERT] Arquivo exportado: {out_p}")
         except Exception as e:
-            messagebox.showerror("Erro de Exportação", f"Falha ao exportar arquivo:\n{e}")
+            messagebox.showerror(
+                "Erro de Exportação", f"Falha ao exportar arquivo:\n{e}"
+            )
 
     def run_simulation_dialog(self):
         """Gera simulação sintética do espectro teórico a partir do .JOB."""
-        if not self.spectrum_data or not self.spectrum_data.get('job_path'):
-            messagebox.showinfo("Aviso", "É necessário ter um arquivo .JOB associado para simulação.")
+        if not self.spectrum_data or not self.spectrum_data.get("job_path"):
+            messagebox.showinfo(
+                "Aviso", "É necessário ter um arquivo .JOB associado para simulação."
+            )
             return
 
-        job_p = self.spectrum_data['job_path']
+        job_p = self.spectrum_data["job_path"]
         default_name = f"{job_p.stem}_simulated.lst"
 
         out_path = filedialog.asksaveasfilename(
             parent=self,
             title="Salvar Espectro Simulado (WSIMDATA)",
             initialfile=default_name,
-            filetypes=[("Arquivo LST (*.lst)", "*.lst"), ("Todos os arquivos", "*.*")]
+            filetypes=[("Arquivo LST (*.lst)", "*.lst"), ("Todos os arquivos", "*.*")],
         )
 
         if not out_path:
             return
 
         try:
-            job_info = self.spectrum_data['job_info']
-            vmax = job_info.get('vmax', 10.0)
+            job_info = self.spectrum_data["job_info"]
+            vmax = job_info.get("vmax", 10.0)
             velocity = calculate_velocity_scale(512, vmax)
             model = MossbauerModel.from_job_info(job_info)
             y_theo, subspectra = model.compute_spectrum(velocity)
@@ -821,8 +1003,13 @@ class MossViewGUI(BaseAppWindow):
             sim_counts = np.clip(y_theo + noise, a_min=0, a_max=None)
 
             export_converted_data(
-                Path(out_path), velocity, sim_counts, y_theo=y_theo,
-                subspectra=subspectra, metadata=job_info, fmt='lst'
+                Path(out_path),
+                velocity,
+                sim_counts,
+                y_theo=y_theo,
+                subspectra=subspectra,
+                metadata=job_info,
+                fmt="lst",
             )
             messagebox.showinfo("Sucesso", f"Espectro simulado salvo em:\n{out_path}")
             self._log(f"[OK WSIMDATA] Simulação salva em: {out_path}")
@@ -831,25 +1018,37 @@ class MossViewGUI(BaseAppWindow):
 
     def validate_param_dialog(self):
         """Valida e corrige discrepâncias no bloco &PARAM."""
-        if not self.spectrum_data or not self.spectrum_data.get('job_path'):
-            messagebox.showinfo("Aviso", "Nenhum arquivo .JOB carregado para validação.")
+        if not self.spectrum_data or not self.spectrum_data.get("job_path"):
+            messagebox.showinfo(
+                "Aviso", "Nenhum arquivo .JOB carregado para validação."
+            )
             return
 
-        job_p = self.spectrum_data['job_path']
+        job_p = self.spectrum_data["job_path"]
         try:
-            raw_content = self.spectrum_data['job_info'].get('raw_content', '')
-            _, updated_path, warnings = validate_and_filter_param_block(job_p, raw_content)
+            raw_content = self.spectrum_data["job_info"].get("raw_content", "")
+            _, updated_path, warnings = validate_and_filter_param_block(
+                job_p, raw_content
+            )
 
             if warnings:
-                msg = "Discrepâncias detectadas e corrigidas no bloco &PARAM:\n\n" + "\n".join(f"• {w}" for w in warnings)
+                msg = (
+                    "Discrepâncias detectadas e corrigidas no bloco &PARAM:\n\n"
+                    + "\n".join(f"• {w}" for w in warnings)
+                )
                 msg += f"\n\nArquivo atualizado salvo em:\n{updated_path.name}"
                 messagebox.showwarning("Validação &PARAM", msg)
                 self._log(f"[AVISO] Inconsistências corrigidas: {updated_path}")
                 # Recarrega o arquivo atualizado
                 self.load_file(str(updated_path))
             else:
-                messagebox.showinfo("Validação &PARAM", "Bloco &PARAM validado com sucesso!\nNenhuma discrepância encontrada.")
-                self._log("[OK] Bloco &PARAM validado. Nenhuma discrepância encontrada.")
+                messagebox.showinfo(
+                    "Validação &PARAM",
+                    "Bloco &PARAM validado com sucesso!\nNenhuma discrepância encontrada.",
+                )
+                self._log(
+                    "[OK] Bloco &PARAM validado. Nenhuma discrepância encontrada."
+                )
         except Exception as e:
             messagebox.showerror("Erro de Validação", f"Falha ao validar &PARAM:\n{e}")
 
@@ -865,7 +1064,7 @@ def main(initial_file: Optional[str] = None):
     target = None
     if initial_file:
         target = initial_file
-    elif len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
+    elif len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
         target = sys.argv[1]
 
     app = MossViewGUI(initial_file=target)

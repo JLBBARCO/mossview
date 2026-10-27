@@ -147,7 +147,7 @@ def run_interactive_cli(target_file: str = None):
                 print(f"[ERRO] Não foi possível iniciar a interface gráfica: {e}")
 
 
-def main():
+def main(argv=None):
     """
     Ponto de entrada do CLI MossView.
     Mantém 100% de compatibilidade com chamadas anteriores:
@@ -163,13 +163,15 @@ def main():
         mossview interactive [ARQUIVO]
         mossview gui [ARQUIVO]
     """
-    # Verificação de compatibilidade retroativa: se o primeiro argumento for um arquivo existente
-    # ou não for um dos subcomandos reservados, trata diretamente como arquivo de espectro.
+    # Verificação de compatibilidade retroativa para `mossview arquivo.job|arquivo.mos`.
+    arguments = list(sys.argv[1:] if argv is None else argv)
     subcommands = {'plot', 'readmcs', 'convert', 'sim', 'info', 'validate', 'interactive', 'gui', '-i', '--interactive'}
 
-    if len(sys.argv) > 1 and sys.argv[1] not in subcommands and not sys.argv[1].startswith('-'):
+    if arguments and arguments[0] not in subcommands and not arguments[0].startswith('-'):
         # Execução padrão retrocompatível: mossview <caminho_arquivo>
-        target_file = sys.argv[1]
+        target_file = arguments[0]
+        if Path(target_file).suffix.lower() not in {'.mos', '.job'}:
+            raise SystemExit("Erro: a CLI exige um arquivo com extensão .mos ou .job.")
         run_plot_flow(target_file, show_gui=True)
         return
 
@@ -215,18 +217,17 @@ def main():
 
     # Subcomando: interactive
     p_inter = subparsers.add_parser("interactive", help="Console interativo em terminal (P.EXE)")
-    p_inter.add_argument("file", nargs="?", default=None, help="Arquivo inicial opcional")
+    p_inter.add_argument("file", help="Arquivo inicial (.JOB ou .MOS)")
 
     # Subcomando: gui
     p_gui = subparsers.add_parser("gui", help="Inicia a interface gráfica de usuário (MossView GUI)")
     p_gui.add_argument("file", nargs="?", default=None, help="Arquivo inicial opcional para abrir na GUI")
 
-    # Se nenhum argumento for passado, abre o modo interativo
-    if len(sys.argv) == 1:
-        run_interactive_cli()
-        return
+    # A CLI exige explicitamente um arquivo; a GUI standalone continua opcional.
+    if not arguments:
+        parser.error("informe um arquivo .mos/.job ou use um subcomando com arquivo")
 
-    args = parser.parse_args()
+    args = parser.parse_args(arguments)
 
     if args.subcommand == "plot":
         out_p = Path(args.output) if args.output else None
